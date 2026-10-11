@@ -1,0 +1,65 @@
+# CS 440 Assignment 1: written answers
+# Run python3 make_report.py to combine these answers with your measurements.
+# Keep each rendered answer at most 520 characters, including macro values.
+# There is no minimum length. State the main argument; prepare full proofs for
+# code review. Lines starting with # are ignored.
+#
+# Cite measurements with macros, for example {{scatter.tie.ratio}}.
+# python3 autograder.py --macros lists the names and draft values.
+# Single digits in prose are allowed. Typed results such as 15, 0.42, 3x, and
+# 60% are rejected. Inspect report.pdf for warnings or truncated answers.
+
+=== MEMBERS ===
+# One per line, "Name, RUID".  Up to four.  These RUIDs also choose your
+# team's 50 gridworlds, so get them right before you generate a final report.
+Aryan Malik, 222003225
+
+=== PLEDGE ===
+# Confirm that this statement is true for every team member; keep it unchanged.
+I did not use generative AI to write any code or any answer in this submission, and every member of this team can explain every line of it.
+
+=== Q1 ===
+# Why is the agent's first move east rather than north in Figure 1(a) of
+# the handout, given that it does not yet know which cells
+# are blocked?  Then: why are Manhattan
+# distances consistent when the agent may move only in the four compass
+# directions and every move costs one?
+Since the agent doesn't know of the walls, and east is the closest square to the target given the choices of west north east, the agent chooses east. Even under Manhattan distance, the answer is the same since the agent can only move in the cardinal directions anyways. Via the inequality: c(s, s') = 1 in this grid, and h(s) - h(s') <= 1 is always true since the Manhattan distance changes by 1 at most. Hence h(s) <= h(s') + 1 = h(s') + c(s, s'). And h(target) = 0 which is consistent.
+
+=== Q2 ===
+# Why must the agent either reach the target or discover that it cannot, in
+# finite time?  Give the argument, and the reason the number of moves is bounded
+# above by the number of unblocked cells squared.
+Since the agent explores until it hits a wall, and there are N cells, the agent can "find" walls at most N times, so we can at most have N replans. Then, since there are N cells, and A* never visits the same cell twice, each plan can have at most N steps. Hence, even in the worst case, we have N plans with N steps each, so the agent must find the target (or show there is no path at all) in finit time, which is bounded by N * N = N^2.
+
+=== Q3 ===
+# What did breaking ties toward larger g do to the number of expansions, and
+# why?  Say why the size of the effect is not the same on the two families.
+Breaking ties with a larger g made the number of expansions less, since we are basically doing DFS and traversing one path all the way. We see more of an effect in scatter vs maze since in scatter the open space is where the paths tie in distance, vs in maze the constricted paths have different lengths so we have less ties overall.
+
+=== Q4 ===
+# Compare Repeated Backward A* and Repeated Forward A*. Explain how newly
+# discovered blockages affect the two directions. Say where each search
+# starts and how that start moves between replans.
+Since the blockages were near the start, forward A* finds them early then pivots, so the cost of replanning is lower. Backward A* makes it all the way to the start then has to replan, so the sunk cost of the plan it just made is higher. Between replans, forward A* moves the start each time, while backward A* keeps it fixed.
+
+=== Q5 ===
+# Why are the updated h-values admissible and consistent, and why do they stay
+# consistent when action costs increase?  Then the measurement: state your null
+# hypothesis, say why the worlds are paired, and interpret the test on both
+# families. Distinguish significance from effect size, state the signed-rank
+# assumptions, and explain what failure to reject would mean.
+The updated h values are admissible because h_new(s)=g(goal)-g(s) does not overestimate. They are consistent since neighboring g values differ by at most the move cost. If costs increase, old h values stay safe. H0: Adaptive and Forward have no difference in expansions. Worlds are paired because they use the same maps. Signed-rank assumes symmetric paired differences. For both families, a small p rejects H0; p shows significance, not effect size. Failure to reject means insufficient evidence of a difference.
+
+=== Q6 ===
+# Which landmarks did you pick and why?  Why is |d(l,s) - d(l,goal)| admissible
+# and consistent, and why does a table built from an older belief stay
+# admissible? Why use max rather than sum? Compare known-map and replanning
+# results, including table construction and the rebuild threshold.
+I picked passable corners, edge midpoints, and interior points so the landmarks were spread out. |d(l,s)-d(l,goal)| is admissible by triangle inequality and consistent since one move changes it by at most the move cost. Older tables had fewer known walls, so their distances can only be too small and stay admissible. We use max because each value is a lower bound, while summing can overestimate. Landmarks helped scatter more than mazes; rebuilding too often adds enough overhead to cancel the gain.
+
+=== Q7 ===
+# Prove the w-times-optimal bound for a consistent base h without reopening.
+# Interpret the sweep and choose a weight. How can replanning affect the
+# trade-off? Can Adaptive A* safely learn C-g(s) from a weighted search?
+For Weighted A*, when the goal is popped its weighted f is no larger than an open node on an optimal path. Since g on that node is no more than its optimal cost so far and h is admissible, the goal cost is at most w times optimal. Larger w usually means fewer expansions but a worse path, and replanning can repeat that tradeoff. Adaptive A* cannot safely learn C-g(s) from weighted search because C may already be suboptimal, so the learned h can overestimate.
